@@ -18,7 +18,7 @@ Khalifa University, Abu Dhabi, UAE
   &nbsp;|&nbsp;
   <a href="#benchmark-coming-soon">&#128202; Benchmark</a>
 </p>
-_________________________________________________________________________________________________
+---
 
 ## 📰 News
 
