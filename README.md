@@ -24,7 +24,7 @@ Yonathan Michael, Mohamad Alansari, Natnael Takele, Andreas Henschel, Naoufel We
 Release schedule:
 
 - [ ] Release paper link.
-- [ ] Release the Falcon-X benchmark.
+- [ ] Release Falcon-X benchmark.
 - [ ] Release model weights.
 - [ ] Release training and evaluation instructions.
 
