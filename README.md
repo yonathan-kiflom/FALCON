@@ -19,6 +19,7 @@ Khalifa University, Abu Dhabi, UAE
   <a href="#benchmark-coming-soon">&#128202; Benchmark</a>
 </p>
 _________________________________________________________________________________________________
+
 ## 📰 News
 
 - [x] FALCON project page is now live!
