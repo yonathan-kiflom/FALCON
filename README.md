@@ -23,12 +23,10 @@ Yonathan Michael, Mohamad Alansari, Natnael Takele, Andreas Henschel, Naoufel We
 
 Release schedule:
 
-- [ ] Release paper/preprint link.
-- [ ] Enable and verify the GitHub Pages project page.
-- [ ] Release model weights.
+- [ ] Release paper link.
 - [ ] Release the Falcon-X benchmark.
-- [ ] Release setup, inference, and evaluation instructions.
-- [ ] Add the final ECCV 2026 BibTeX citation.
+- [ ] Release model weights.
+- [ ] Release training and evaluation instructions.
 
 ## Citation
 
