@@ -4,7 +4,7 @@
 
 # FALCON: Functional Assembly and Language for Compositional Reasoning in X-ray [ECCV 2026]
 
-<hr>
+---
 
 [Yonathan Michael](https://scholar.google.com/citations?user=1NgtYpwAAAAJ&hl=en), [Mohamad Alansari](https://scholar.google.com/citations?user=dLQ1jLkAAAAJ&hl=en), [Natnael Takele](https://scholar.google.com/citations?user=dVtaIkAAAAAJ&hl=en), [Andreas Henschel](https://scholar.google.com/citations?user=jenl24IAAAAJ&hl=en&oi=ao), [Naoufel Werghi](https://scholar.google.com/citations?user=G_2Xpm0AAAAJ&hl=en)
 
@@ -20,7 +20,7 @@
   <a href="#benchmark-coming-soon">&#128202; Benchmark</a>
 </p>
 
-<hr>
+---
 
 ## 📰 News
 
