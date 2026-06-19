@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FALCON: Functional Assembly and Language for Compositional Reasoning in X-ray</title>
+    <meta name="description"
+        content="Project page for FALCON, an ECCV 2026 paper on reasoning and grounding over dismantled IED components, component compatibility, and scene-level risk in cluttered baggage scans.">
+    <link rel="icon" type="image/jpeg" href="assets/cvml-lab-logo.jpg">
+    <link rel="apple-touch-icon" href="assets/cvml-lab-logo.jpg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'scan': 'scan 7s linear infinite'
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(18px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        scan: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(100%)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f7fbfc;
+            color: #111827;
+            overflow-x: hidden;
+        }
+
+        .security-grid {
+            background-image:
+                linear-gradient(rgba(34, 211, 238, 0.13) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34, 211, 238, 0.13) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(186, 230, 253, 0.72);
+            box-shadow: 0 20px 60px rgba(8, 47, 73, 0.1);
+        }
+
+        .figure-shell {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(240, 249, 255, 0.72));
+            border: 1px solid rgba(125, 211, 252, 0.42);
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+        }
+
+        .code-block {
+            background: #06121f;
+            color: #dff7ff;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        }
+
+        .benchmark-table {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        .benchmark-table th,
+        .benchmark-table td {
+            padding: 0.35rem 0.16rem;
+            overflow-wrap: anywhere;
+            vertical-align: middle;
+            line-height: 1.15;
+        }
+
+        .benchmark-table .dataset-col {
+            width: 16%;
+        }
+
+        .benchmark-table .samples-col {
+            width: 7%;
+        }
+
+        .benchmark-table .narrow-col {
+            width: 4%;
+        }
+
+        .benchmark-table .feature-col {
+            width: 5.75%;
+        }
+
+        .results-table {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 0.5rem 0.28rem;
+            overflow-wrap: anywhere;
+            vertical-align: middle;
+            line-height: 1.2;
+        }
+
+        .results-table .method-col {
+            width: 20%;
+        }
+
+        .results-table .metric-col {
+            width: 10%;
+        }
+
+        .results-table .metric-col-tight {
+            width: 8%;
+        }
+
+        .metric-gain {
+            display: block;
+            margin-top: 0.1rem;
+            color: #64748b;
+            font-size: 0.72em;
+            font-weight: 700;
+        }
+
+        @media (min-width: 640px) {
+
+            .benchmark-table th,
+            .benchmark-table td {
+                padding: 0.45rem 0.24rem;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 0.62rem 0.36rem;
+            }
+        }
+
+        #lightbox {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        #lightbox.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #lightbox-img {
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        #lightbox.open #lightbox-img {
+            transform: scale(1);
+        }
+    </style>
+</head>
+
+<body class="antialiased selection:bg-cyan-200 selection:text-sky-950">
+    <div class="relative overflow-hidden bg-[#06121f] text-white">
+        <div class="absolute inset-0 security-grid opacity-60"></div>
+        <div class="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-cyan-400/18 to-transparent"></div>
+        <div
+            class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-transparent via-cyan-300/10 to-transparent animate-scan">
+        </div>
+        <div class="absolute inset-0 bg-gradient-to-b from-cyan-950/20 via-transparent to-sky-950/35"></div>
+
+        <header
+            class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 text-center opacity-0 animate-fade-in-up">
+            <div class="flex justify-center mb-5">
+                <div
+                    class="h-28 w-28 rounded-2xl border border-cyan-300/30 bg-white/8 shadow-2xl shadow-cyan-950/40 p-2 flex items-center justify-center">
+                    <img src="assets/falcon-logo.png" alt="FALCON logo" class="max-h-24 w-auto object-contain">
+                </div>
+            </div>
+
+            
+
+            <h1
+                class="max-w-5xl mx-auto text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6">
+                <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 via-sky-300 to-white">FALCON</span><span>:</span>
+                <span class="mt-3 block text-3xl sm:text-4xl lg:text-5xl leading-tight">
+                    Functional Assembly and Language for Compositional Reasoning in X-ray
+                </span>
+            </h1>
+
+            <p class="max-w-3xl mx-auto text-base sm:text-lg text-sky-100/86 leading-relaxed mb-7">
+                A multimodal framework for reasoning and grounding over dismantled IED components, component
+                compatibility, and scene-level risk in cluttered baggage scans.
+            </p>
+
+            <div class="flex flex-col items-center justify-center gap-3 text-sky-100/70 mb-9">
+                <div class="flex flex-wrap justify-center gap-x-5 gap-y-2 text-base sm:text-lg font-medium text-sky-50">
+                    <span>Yonathan Michael</span>
+                    <span>Mohamad Alansari</span>
+                    <span>Natnael Takele</span>
+                    <span>Andreas Henschel</span>
+                    <span>Naoufel Werghi</span>
+                </div>
+                <span class="text-sm">Khalifa University, Abu Dhabi, UAE</span>
+            </div>
+            <div
+                class="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold text-cyan-100 bg-cyan-400/12 ring-1 ring-inset ring-cyan-300/30 mb-6">
+                ECCV 2026
+            </div>
+
+            <div class="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4">
+                <button type="button" disabled
+                    class="w-full max-w-[235px] sm:w-auto inline-flex cursor-not-allowed items-center justify-center px-6 py-3 text-base font-semibold text-sky-200 bg-white/8 border border-white/15 rounded-full shadow-sm"
+                    title="Paper">
+                    <i data-lucide="file-text" class="w-5 h-5 mr-2"></i>
+                    Paper soon
+                </button>
+                <a href="https://github.com/yonathan-kiflom/FALCON" target="_blank" rel="noopener"
+                    class="group w-full max-w-[235px] sm:w-auto inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-sky-950 transition-all duration-200 bg-cyan-200 border border-transparent rounded-full hover:bg-white hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#06121f] focus:ring-cyan-200">
+                    <svg class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" viewBox="0 0 24 24"
+                        fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm3.163 21.783h-.093a.513.513 0 0 1-.382-.14.513.513 0 0 1-.14-.372v-1.406c.006-.467.01-.94.01-1.416a3.693 3.693 0 0 0-.151-1.028 1.832 1.832 0 0 0-.542-.875 8.014 8.014 0 0 0 2.038-.471 4.051 4.051 0 0 0 1.466-.964c.407-.427.71-.943.885-1.506a6.77 6.77 0 0 0 .3-2.13 4.138 4.138 0 0 0-.26-1.476 3.892 3.892 0 0 0-.795-1.284 2.81 2.81 0 0 0 .162-.582c.033-.2.05-.402.05-.604 0-.26-.03-.52-.09-.773a5.309 5.309 0 0 0-.221-.763.293.293 0 0 0-.111-.02h-.11c-.23.002-.456.04-.674.111a5.34 5.34 0 0 0-.703.26 6.503 6.503 0 0 0-.661.343c-.215.127-.405.249-.573.362a9.578 9.578 0 0 0-5.143 0 13.507 13.507 0 0 0-.572-.362 6.022 6.022 0 0 0-.672-.342 4.516 4.516 0 0 0-.705-.261 2.203 2.203 0 0 0-.662-.111h-.11a.29.29 0 0 0-.11.02 5.844 5.844 0 0 0-.23.763c-.054.254-.08.513-.081.773 0 .202.017.404.051.604.033.199.086.394.16.582A3.888 3.888 0 0 0 5.702 10a4.142 4.142 0 0 0-.263 1.476 6.871 6.871 0 0 0 .292 2.12c.181.563.483 1.08.884 1.516.415.422.915.75 1.466.964.653.25 1.337.41 2.033.476a1.828 1.828 0 0 0-.452.633 2.99 2.99 0 0 0-.2.744 2.754 2.754 0 0 1-1.175.27 1.788 1.788 0 0 1-1.065-.3 2.904 2.904 0 0 1-.752-.824 3.1 3.1 0 0 0-.292-.382 2.693 2.693 0 0 0-.372-.343 1.841 1.841 0 0 0-.432-.24 1.2 1.2 0 0 0-.481-.101c-.04.001-.08.005-.12.01a.649.649 0 0 0-.162.02.408.408 0 0 0-.13.06.116.116 0 0 0-.06.1.33.33 0 0 0 .14.242c.093.074.17.131.232.171l.03.021c.133.103.261.214.382.333.112.098.213.209.3.33.09.119.168.246.231.381.073.134.15.288.231.463.188.474.522.875.954 1.145.453.243.961.364 1.476.351.174 0 .349-.01.522-.03.172-.028.343-.057.515-.091v1.743a.5.5 0 0 1-.533.521h-.062a10.286 10.286 0 1 1 6.324 0v.005z" />
+                    </svg>
+                    Code
+                </a>
+                <button type="button" disabled
+                    class="w-full max-w-[235px] sm:w-auto inline-flex cursor-not-allowed items-center justify-center px-6 py-3 text-base font-semibold text-sky-200 bg-white/8 border border-white/15 rounded-full shadow-sm"
+                    title="Weights">
+                    <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt=""
+                        class="mr-2 h-5 w-5" loading="lazy">
+                    Weights soon
+                </button>
+                <button type="button" disabled
+                    class="w-full max-w-[235px] sm:w-auto inline-flex cursor-not-allowed items-center justify-center px-6 py-3 text-base font-semibold text-sky-200 bg-white/8 border border-white/15 rounded-full shadow-sm"
+                    title="Benchmark">
+                    <i data-lucide="database" class="w-5 h-5 mr-2"></i>
+                    Benchmark soon
+                </button>
+            </div>
+        </header>
+    </div>
+
+    <main class="w-full max-w-[342px] sm:max-w-6xl mx-auto px-0 sm:px-6 lg:px-8 -mt-8 relative z-10 overflow-hidden">
+        <section id="abstract" class="mb-24 opacity-0 animate-fade-in-up">
+            <div class="glass-panel rounded-2xl sm:rounded-3xl p-5 sm:p-10 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-cyan-400 via-sky-600 to-amber-400">
+                </div>
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="p-2 bg-cyan-100 rounded-lg text-cyan-700">
+                        <i data-lucide="radar" class="w-6 h-6"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-slate-950 tracking-tight">Abstract</h2>
+                </div>
+                <p class="text-slate-700 leading-relaxed text-base sm:text-lg">
+                    Conventional vision-language models are largely object-centric, focusing on detecting and
+                    describing individual entities. In safety-critical X-ray baggage screening, however, risk often
+                    emerges not from a single object but from the functional compatibility of spatially dispersed,
+                    dismantled IED components such as batteries, detonators, and explosive charges. We formalize this
+                    setting as
+                    <span
+                        class="inline-flex items-center rounded-md bg-cyan-50 px-2 py-1 text-sm font-semibold text-cyan-800 ring-1 ring-inset ring-cyan-700/10 whitespace-nowrap mx-0.5">compositional
+                        threat reasoning</span>,
+                    where risk is modeled as a relational property of grounded regions rather than an independent
+                    detection outcome. We introduce <strong
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-700 to-sky-800 font-extrabold text-xl align-baseline">FALCON</strong>,
+                    a multimodal framework for reasoning and grounding over dismantled IED components. FALCON abstracts
+                    segmentation-aware region features into a structured safety state capturing component presence,
+                    pairwise functional compatibility, and scene-level risk. This structured representation is injected
+                    into the language model as an explicit intermediate interface, encouraging relationally consistent
+                    and safety-aware reasoning.
+                    <span
+                        class="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-sm font-semibold text-amber-800 ring-1 ring-inset ring-amber-700/10 whitespace-nowrap mx-0.5">Falcon-X</span>
+                    evaluates dense grounding with structured supervision over dismantled component completeness,
+                    compatibility, and risk inference in cluttered X-ray imagery. Experiments show that existing
+                    multimodal models adapt to appearance but struggle with compositional safety reasoning, while
+                    FALCON improves functional grounding and produces more coherent scene-level risk assessments.
+                </p>
+            </div>
+        </section>
+
+        <section id="overview" class="mb-24">
+            <div class="grid lg:grid-cols-3 gap-5">
+                <article class="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm">
+                    <i data-lucide="box" class="w-7 h-7 text-sky-700 mb-4"></i>
+                    <h3 class="font-bold text-slate-950 text-lg mb-2">Beyond Object Lists</h3>
+                    <p class="text-slate-600 leading-relaxed">
+                        IED risk assessment cannot stop at isolated labels. FALCON grounds dismantled components and
+                        reasons about how they function together inside a cluttered scan.
+                    </p>
+                </article>
+                <article class="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm">
+                    <i data-lucide="network" class="w-7 h-7 text-cyan-700 mb-4"></i>
+                    <h3 class="font-bold text-slate-950 text-lg mb-2">Structured Safety State</h3>
+                    <p class="text-slate-600 leading-relaxed">
+                        Segmentation-aware region features are abstracted into dismantled component presence, pairwise
+                        compatibility, and scene-level risk.
+                    </p>
+                </article>
+                <article class="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm">
+                    <i data-lucide="shield-alert" class="w-7 h-7 text-amber-700 mb-4"></i>
+                    <h3 class="font-bold text-slate-950 text-lg mb-2">Safety-Aware Language</h3>
+                    <p class="text-slate-600 leading-relaxed">
+                        The language model receives an explicit intermediate interface, encouraging grounded,
+                        relationally consistent explanations of component compatibility and risk.
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <section id="comparison" class="mb-24">
+            <div class="flex items-center gap-3 mb-8">
+                <div class="p-2 bg-sky-100 rounded-lg text-sky-700">
+                    <i data-lucide="scan-search" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-950 tracking-tight">Why FALCON?</h2>
+            </div>
+
+            <div class="figure-shell rounded-2xl p-3 overflow-hidden group">
+                <button type="button"
+                    class="w-full rounded-xl bg-white cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    onclick="openLightbox('assets/intro-figure-cropped.png', 'FALCON comparison with existing multimodal models')"
+                    aria-label="Open comparison figure">
+                    <img src="assets/intro-figure-cropped.png" alt="FALCON comparison with existing multimodal models"
+                        class="w-full h-auto rounded-xl transition-transform duration-700 group-hover:scale-[1.01]">
+                </button>
+                <p class="text-sm text-slate-600 px-2 pt-4 pb-1">
+                    Existing multimodal systems often describe visible objects or overfit to appearance. FALCON focuses
+                    on grounded dismantled IED components and their functional compatibility rather than a generic scene caption.
+                </p>
+            </div>
+        </section>
+
+        <section id="methodology" class="mb-24">
+            <div class="flex items-center gap-3 mb-8">
+                <div class="p-2 bg-cyan-100 rounded-lg text-cyan-700">
+                    <i data-lucide="workflow" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-950 tracking-tight">Methodology</h2>
+            </div>
+
+            <div class="figure-shell rounded-2xl p-3 mb-8 overflow-hidden group">
+                <button type="button"
+                    class="w-full rounded-xl bg-white cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    onclick="openLightbox('assets/architecture.png', 'FALCON')"
+                    aria-label="Open FALCON architecture diagram">
+                    <img src="assets/architecture.png" alt="FALCON"
+                        class="w-full h-auto rounded-xl transition-transform duration-700 group-hover:scale-[1.01]">
+                </button>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-5">
+                <article class="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm">
+                    <h3 class="font-bold text-slate-950 text-lg mb-2">Component Grounding</h3>
+                    <p class="text-slate-600 leading-relaxed">
+                        Dense X-ray regions are proposed and encoded so the language model can refer to grounded IED
+                        components rather than unstructured image tokens alone.
+                    </p>
+                </article>
+                <article class="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm">
+                    <h3 class="font-bold text-slate-950 text-lg mb-2">Compatibility State</h3>
+                    <p class="text-slate-600 leading-relaxed">
+                        Dismantled component presence and pairwise functional compatibility are represented as an
+                        intermediate safety state before final reasoning.
+                    </p>
+                </article>
+                <article class="bg-white rounded-2xl border border-sky-100 p-6 shadow-sm">
+                    <h3 class="font-bold text-slate-950 text-lg mb-2">Risk Inference</h3>
+                    <p class="text-slate-600 leading-relaxed">
+                        FALCON fuses visual regions, structured state tokens, and prompts to answer grounding,
+                        compatibility, completeness, and scene-level risk questions.
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <section id="benchmark" class="mb-24">
+            <div class="flex items-center gap-3 mb-8">
+                <div class="p-2 bg-amber-100 rounded-lg text-amber-700">
+                    <i data-lucide="database" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-950 tracking-tight">Falcon-X</h2>
+            </div>
+
+            <div class="figure-shell rounded-2xl p-3 overflow-hidden group">
+                <p class="text-sm text-slate-600 px-2 pt-4 pb-1">
+                    <!-- Annotation Pipeline -->
+                </p>
+                <button type="button"
+                    class="w-full rounded-xl bg-white cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    onclick="openLightbox('assets/data-collection.png', 'Falcon-X data collection and annotation pipeline')"
+                    aria-label="Open Falcon-X data collection figure">
+                    <img src="assets/data-collection.png" alt="Falcon-X data collection and annotation pipeline"
+                        class="w-full h-auto rounded-xl transition-transform duration-700 group-hover:scale-[1.01]">
+                </button>
+                <!-- <p class="text-sm text-slate-600 px-2 pt-4 pb-1">
+                    Falcon-X unifies dense grounding with structured supervision for dismantled component
+                    completeness, functional compatibility, and scene-level risk inference, making compositional
+                    safety reasoning measurable in cluttered X-ray scenes.
+                </p> -->
+            </div>
+
+            <div class="mt-8 overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm">
+                <div class="border-b border-sky-100 px-5 py-4">
+                    <h3 class="text-xl font-bold text-slate-950">Benchmark Comparison</h3>
+                    <!-- <p class="mt-2 text-sm text-slate-600 leading-relaxed">
+                        Comparison of Falcon-X with existing X-ray security benchmarks. DC denotes explicit modeling of
+                        dismantled components. Falcon-X jointly supports dense grounding, multimodal understanding, and
+                        structured functional threat reasoning.
+                    </p> -->
+                </div>
+                <div class="overflow-hidden">
+                    <table class="benchmark-table text-center text-[8px] sm:text-[10px] lg:text-[11px] text-slate-600">
+                        <colgroup>
+                            <col class="dataset-col">
+                            <col class="samples-col">
+                            <col class="narrow-col">
+                            <col class="feature-col">
+                            <col class="feature-col">
+                            <col class="feature-col">
+                            <col class="feature-col">
+                            <col class="feature-col">
+                            <col class="feature-col">
+                            <col class="feature-col">
+                            <col class="feature-col">
+                            <col class="feature-col">
+                            <col class="feature-col">
+                            <col class="feature-col">
+                            <col class="feature-col">
+                            <col class="narrow-col">
+                        </colgroup>
+                        <thead class="bg-slate-950 text-[7px] sm:text-[9px] lg:text-[10px] uppercase text-sky-50">
+                            <tr>
+                                <th rowspan="2" class="px-4 py-4 text-left font-bold">Dataset</th>
+                                <th rowspan="2" class="px-3 py-4 font-bold">#</th>
+                                <th rowspan="2" class="px-3 py-4 font-bold">DC</th>
+                                <th colspan="4" class="border-l border-slate-700 px-3 py-3 font-bold">Ann.</th>
+                                <th colspan="8" class="border-l border-slate-700 px-3 py-3 font-bold">Tasks</th>
+                                <th rowspan="2" class="border-l border-slate-700 px-3 py-4 font-bold">Av</th>
+                            </tr>
+                            <tr class="border-t border-slate-700">
+                                <th class="border-l border-slate-700 px-3 py-3 font-semibold">Lab</th>
+                                <th class="px-3 py-3 font-semibold">Box</th>
+                                <th class="px-3 py-3 font-semibold">Msk</th>
+                                <th class="px-3 py-3 font-semibold">Cap</th>
+                                <th class="border-l border-slate-700 px-3 py-3 font-semibold">RefS</th>
+                                <th class="px-3 py-3 font-semibold">RefP</th>
+                                <th class="px-3 py-3 font-semibold">Pan</th>
+                                <th class="px-3 py-3 font-semibold">VQA</th>
+                                <th class="px-3 py-3 font-semibold">RL</th>
+                                <th class="px-3 py-3 font-semibold">FG</th>
+                                <th class="px-3 py-3 font-semibold">GG</th>
+                                <th class="px-3 py-3 font-semibold">SA</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-sky-50">
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="px-4 py-3 text-left font-medium text-slate-900">GDXray <span
+                                        class="text-slate-400">(JNDE'15)</span></td>
+                                <td>8,150</td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="px-4 py-3 text-left font-medium text-slate-900">SIXray <span
+                                        class="text-slate-400">(CVPR'19)</span></td>
+                                <td>8,929</td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="px-4 py-3 text-left font-medium text-slate-900">OPIXray <span
+                                        class="text-slate-400">(ACMMM'20)</span></td>
+                                <td>46,642</td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="px-4 py-3 text-left font-medium text-slate-900">HiXray <span
+                                        class="text-slate-400">(ICCV'21)</span></td>
+                                <td>45,364</td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="px-4 py-3 text-left font-medium text-slate-900">CLCxray <span
+                                        class="text-slate-400">(ITIFS'22)</span></td>
+                                <td>9,565</td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="px-4 py-3 text-left font-medium text-slate-900">PIXray <span
+                                        class="text-slate-400">(ITMM'22)</span></td>
+                                <td>5,046</td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="px-4 py-3 text-left font-medium text-slate-900">EDS <span
+                                        class="text-slate-400">(CVPR'22)</span></td>
+                                <td>14,219</td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="px-4 py-3 text-left font-medium text-slate-900">LPIXray <span
+                                        class="text-slate-400">(CIPAE'23)</span></td>
+                                <td>60,950</td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="px-4 py-3 text-left font-medium text-slate-900">PIDray <span
+                                        class="text-slate-400">(IJCV'23)</span></td>
+                                <td>47,677</td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="px-4 py-3 text-left font-medium text-slate-900">DvXray <span
+                                        class="text-slate-400">(ITIFS'24)</span></td>
+                                <td>5,496</td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="px-4 py-3 text-left font-medium text-slate-900">STCray <span
+                                        class="text-slate-400">(CVPR'25)</span></td>
+                                <td>46,642</td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-rose-600">&times;</span></td>
+                                <td><span class="text-cyan-700">&#10003;</span></td>
+                            </tr>
+                            <tr class="bg-cyan-50 text-slate-950 ring-1 ring-inset ring-cyan-200">
+                                <td class="px-4 py-4 text-left font-extrabold">Falcon-X</td>
+                                <td class="font-bold">6,911</td>
+                                <td><span class="font-bold text-cyan-700">&#10003;</span></td>
+                                <td><span class="font-bold text-cyan-700">&#10003;</span></td>
+                                <td><span class="font-bold text-cyan-700">&#10003;</span></td>
+                                <td><span class="font-bold text-cyan-700">&#10003;</span></td>
+                                <td><span class="font-bold text-cyan-700">&#10003;</span></td>
+                                <td><span class="font-bold text-cyan-700">&#10003;</span></td>
+                                <td><span class="font-bold text-cyan-700">&#10003;</span></td>
+                                <td><span class="font-bold text-cyan-700">&#10003;</span></td>
+                                <td><span class="font-bold text-cyan-700">&#10003;</span></td>
+                                <td><span class="font-bold text-cyan-700">&#10003;</span></td>
+                                <td><span class="font-bold text-cyan-700">&#10003;</span></td>
+                                <td><span class="font-bold text-cyan-700">&#10003;</span></td>
+                                <td><span class="font-bold text-cyan-700">&#10003;</span></td>
+                                <td><span class="font-bold text-cyan-700">&#10003;</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="border-t border-sky-100 px-5 py-3 text-xs text-slate-500">
+                    DC: dismantled components; Lab: labels; Box: bounding boxes; Msk: masks; Cap:
+                    captions; RefS: referring segmentation; RefP: referring panoptic segmentation; Pan: panoptic
+                    segmentation; RL: region localization; FG: functional grounding; GG: grounded generation; SA:
+                    scene-level analysis; Av: available.
+                </div>
+            </div>
+        </section>
+
+        <section id="results" class="mb-24">
+            <div class="flex items-center gap-3 mb-8">
+                <div class="p-2 bg-cyan-100 rounded-lg text-cyan-700">
+                    <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-950 tracking-tight">Quantitative Results</h2>
+            </div>
+
+            <div class="overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm">
+                <div class="border-b border-sky-100 px-5 py-4">
+                    <h3 class="text-xl font-bold text-slate-950">Scene Understanding</h3>
+                    <!-- <p class="mt-2 text-sm text-slate-600 leading-relaxed">
+                        Scene understanding image captioning and VQA performance on Falcon-X. Higher values indicate
+                        stronger caption quality and more accurate multimodal question answering.
+                    </p> -->
+                </div>
+                <div class="overflow-hidden">
+                    <table class="results-table text-center text-[9px] sm:text-xs text-slate-600">
+                        <colgroup>
+                            <col class="method-col">
+                            <col class="metric-col">
+                            <col class="metric-col">
+                            <col class="metric-col">
+                            <col class="metric-col">
+                            <col class="metric-col">
+                            <col class="metric-col">
+                            <col class="metric-col">
+                        </colgroup>
+                        <thead class="bg-slate-950 text-[8px] sm:text-[10px] uppercase text-sky-50">
+                            <tr>
+                                <th rowspan="2" class="text-left font-bold">Method</th>
+                                <th colspan="3" class="border-l border-slate-700 font-bold">Image Captioning</th>
+                                <th colspan="4" class="border-l border-slate-700 font-bold">VQA</th>
+                            </tr>
+                            <tr class="border-t border-slate-700">
+                                <th class="border-l border-slate-700 font-semibold">BLEU</th>
+                                <th class="font-semibold">ROUGE-L</th>
+                                <th class="font-semibold">CIDEr</th>
+                                <th class="border-l border-slate-700 font-semibold">BLEU</th>
+                                <th class="font-semibold">METEOR</th>
+                                <th class="font-semibold">ROUGE-L</th>
+                                <th class="font-semibold">CIDEr</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-sky-50">
+                            <tr class="bg-slate-50 text-left text-[10px] sm:text-xs font-bold uppercase text-slate-500">
+                                <td colspan="8" class="px-4 py-2">Zero-shot</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Sa2Va</td>
+                                <td>25.06</td>
+                                <td>18.11</td>
+                                <td>0.012</td>
+                                <td>2.88</td>
+                                <td>&ndash;</td>
+                                <td>3.25</td>
+                                <td>&ndash;</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Kosmos-2</td>
+                                <td>16.26</td>
+                                <td>17.56</td>
+                                <td>0.002</td>
+                                <td>2.83</td>
+                                <td>5.47</td>
+                                <td>3.79</td>
+                                <td>0.003</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Llava-1.5</td>
+                                <td>12.67</td>
+                                <td>15.67</td>
+                                <td>&ndash;</td>
+                                <td>2.77</td>
+                                <td>7.64</td>
+                                <td>3.39</td>
+                                <td>&ndash;</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">GLaMM</td>
+                                <td>15.91</td>
+                                <td>17.56</td>
+                                <td>0.0032</td>
+                                <td>1.95</td>
+                                <td>4.86</td>
+                                <td>3.52</td>
+                                <td>0.001</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">LISA</td>
+                                <td>20.57</td>
+                                <td>18.08</td>
+                                <td>0.01</td>
+                                <td>3.86</td>
+                                <td>&ndash;</td>
+                                <td>3.94</td>
+                                <td>&ndash;</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Groma</td>
+                                <td>18.8</td>
+                                <td>16.48</td>
+                                <td>0.004</td>
+                                <td>3.32</td>
+                                <td>8.90</td>
+                                <td>3.44</td>
+                                <td>&ndash;</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Sting-Bee</td>
+                                <td>24.61</td>
+                                <td>17.95</td>
+                                <td>0.012</td>
+                                <td>3.86</td>
+                                <td>7.74</td>
+                                <td>4.04</td>
+                                <td>0.01</td>
+                            </tr>
+                            <tr class="bg-slate-50 text-left text-[10px] sm:text-xs font-bold uppercase text-slate-500">
+                                <td colspan="8" class="px-4 py-2">Fine-tuned</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">LISA</td>
+                                <td class="font-semibold text-sky-700">35.57</td>
+                                <td class="font-semibold text-sky-700">39.13</td>
+                                <td class="font-semibold text-sky-700">0.04</td>
+                                <td class="font-semibold text-emerald-700">99.91</td>
+                                <td class="font-semibold text-emerald-700">91.42</td>
+                                <td class="font-semibold text-emerald-700">99.93</td>
+                                <td class="font-semibold text-emerald-700">6.25</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Sting-Bee</td>
+                                <td>33.38</td>
+                                <td>37.48</td>
+                                <td>0.024</td>
+                                <td>99.12</td>
+                                <td class="font-semibold text-sky-700">91.27</td>
+                                <td class="font-semibold text-sky-700">99.92</td>
+                                <td class="font-semibold text-sky-700">6.24</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Groma</td>
+                                <td class="font-semibold text-emerald-700">40.7</td>
+                                <td class="font-semibold text-emerald-700">47.69</td>
+                                <td class="font-semibold text-emerald-700">0.061</td>
+                                <td class="font-semibold text-sky-700">99.86</td>
+                                <td>91.24</td>
+                                <td class="font-semibold text-sky-700">99.92</td>
+                                <td class="font-semibold text-sky-700">6.24</td>
+                            </tr>
+                            <tr class="bg-cyan-50 text-slate-950 ring-1 ring-inset ring-cyan-200">
+                                <td class="text-left font-extrabold">FALCON</td>
+                                <td class="font-extrabold text-cyan-800">40.92<span class="metric-gain">+0.22</span></td>
+                                <td class="font-extrabold text-cyan-800">47.74<span class="metric-gain">+0.05</span></td>
+                                <td class="font-extrabold text-cyan-800">0.064<span class="metric-gain">+0.003</span></td>
+                                <td class="font-extrabold text-cyan-800">99.93<span class="metric-gain">+0.02</span></td>
+                                <td class="font-extrabold text-cyan-800">91.98<span class="metric-gain">+0.56</span></td>
+                                <td class="font-extrabold text-cyan-800">99.95<span class="metric-gain">+0.02</span></td>
+                                <td class="font-extrabold text-cyan-800">6.26<span class="metric-gain">+0.01</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-8 overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm">
+                <div class="border-b border-sky-100 px-5 py-4">
+                    <h3 class="text-xl font-bold text-slate-950">Perception And Compositional Grounding</h3>
+                    <!-- <p class="mt-2 text-sm text-slate-600 leading-relaxed">
+                        Perception and compositional grounding performance on Falcon-X. RS, PS, RPS, and RFG denote
+                        referring segmentation, panoptic segmentation, referring panoptic segmentation, and referring
+                        functional grounding.
+                    </p> -->
+                </div>
+                <div class="overflow-hidden">
+                    <table class="results-table text-center text-[9px] sm:text-xs text-slate-600">
+                        <colgroup>
+                            <col class="method-col">
+                            <col class="metric-col">
+                            <col class="metric-col">
+                            <col class="metric-col">
+                            <col class="metric-col">
+                            <col class="metric-col">
+                            <col class="metric-col">
+                            <col class="metric-col">
+                            <col class="metric-col">
+                        </colgroup>
+                        <thead class="bg-slate-950 text-[8px] sm:text-[10px] uppercase text-sky-50">
+                            <tr>
+                                <th rowspan="2" class="text-left font-bold">Method</th>
+                                <th colspan="2" class="border-l border-slate-700 font-bold">RS</th>
+                                <th colspan="2" class="border-l border-slate-700 font-bold">PS</th>
+                                <th colspan="2" class="border-l border-slate-700 font-bold">RPS</th>
+                                <th colspan="2" class="border-l border-slate-700 font-bold">RFG</th>
+                            </tr>
+                            <tr class="border-t border-slate-700">
+                                <th class="border-l border-slate-700 font-semibold">cIoU</th>
+                                <th class="font-semibold">mIoU</th>
+                                <th class="border-l border-slate-700 font-semibold">cIoU</th>
+                                <th class="font-semibold">mIoU</th>
+                                <th class="border-l border-slate-700 font-semibold">cIoU</th>
+                                <th class="font-semibold">mIoU</th>
+                                <th class="border-l border-slate-700 font-semibold">cIoU</th>
+                                <th class="font-semibold">mIoU</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-sky-50">
+                            <tr class="bg-slate-50 text-left text-[10px] sm:text-xs font-bold uppercase text-slate-500">
+                                <td colspan="9" class="px-4 py-2">Zero-shot</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Sa2Va</td>
+                                <td>14.96</td>
+                                <td class="font-semibold text-emerald-700">32.78</td>
+                                <td class="font-semibold text-red-700">35.53</td>
+                                <td class="font-semibold text-red-700">54.14</td>
+                                <td>17.5</td>
+                                <td class="font-semibold text-red-700">37.98</td>
+                                <td class="font-semibold text-sky-700">14.26</td>
+                                <td>20.64</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Kosmos-2</td>
+                                <td>2.95</td>
+                                <td>3.2</td>
+                                <td>2.78</td>
+                                <td>3.08</td>
+                                <td>2.92</td>
+                                <td>3.32</td>
+                                <td>3.61</td>
+                                <td>3.62</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">GLaMM</td>
+                                <td>12.37</td>
+                                <td>19.84</td>
+                                <td>6.41</td>
+                                <td>13.72</td>
+                                <td>11.28</td>
+                                <td>18.93</td>
+                                <td>5.73</td>
+                                <td>17.02</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">LISA</td>
+                                <td>3.50</td>
+                                <td>6.73</td>
+                                <td>9.13</td>
+                                <td>14.21</td>
+                                <td>11.50</td>
+                                <td>16.95</td>
+                                <td>11.86</td>
+                                <td>13.24</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Groma</td>
+                                <td>11.61</td>
+                                <td>20.49</td>
+                                <td>7.88</td>
+                                <td>16.04</td>
+                                <td>14.06</td>
+                                <td>21.2</td>
+                                <td>8.16</td>
+                                <td class="font-semibold text-sky-700">26.31</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Sting-Bee</td>
+                                <td class="font-semibold text-sky-700">15.23</td>
+                                <td>22.37</td>
+                                <td>12.45</td>
+                                <td>15.69</td>
+                                <td>13.21</td>
+                                <td>14.95</td>
+                                <td>10.45</td>
+                                <td>11.89</td>
+                            </tr>
+                            <tr class="bg-slate-50 text-left text-[10px] sm:text-xs font-bold uppercase text-slate-500">
+                                <td colspan="9" class="px-4 py-2">Fine-tuned</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">LISA</td>
+                                <td>11.82</td>
+                                <td>14.75</td>
+                                <td class="font-semibold text-sky-700">35.18</td>
+                                <td class="font-semibold text-sky-700">37.12</td>
+                                <td class="font-semibold text-red-700">30.12</td>
+                                <td class="font-semibold text-sky-700">33.34</td>
+                                <td>9.45</td>
+                                <td>12.98</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Sting-Bee</td>
+                                <td class="font-semibold text-emerald-700">18.72</td>
+                                <td class="font-semibold text-sky-700">26.81</td>
+                                <td>31.05</td>
+                                <td>33.49</td>
+                                <td>15.40</td>
+                                <td>19.59</td>
+                                <td>12.72</td>
+                                <td>14.96</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Groma</td>
+                                <td>14.25</td>
+                                <td>21.99</td>
+                                <td class="font-semibold text-emerald-700">36.73</td>
+                                <td>13.78</td>
+                                <td class="font-semibold text-sky-700">17.94</td>
+                                <td>24.1</td>
+                                <td class="font-semibold text-emerald-700">20.07</td>
+                                <td class="font-semibold text-emerald-700">29.55</td>
+                            </tr>
+                            <tr class="bg-cyan-50 text-slate-950 ring-1 ring-inset ring-cyan-200">
+                                <td class="text-left font-extrabold">FALCON</td>
+                                <td class="font-extrabold text-cyan-800">25.86<span class="metric-gain">+7.14</span></td>
+                                <td class="font-extrabold text-cyan-800">35.39<span class="metric-gain">+2.61</span></td>
+                                <td>14.37<span class="metric-gain">-21.16</span></td>
+                                <td class="font-extrabold text-emerald-700">38.02<span class="metric-gain">-16.12</span></td>
+                                <td class="font-extrabold text-emerald-700">21.74<span class="metric-gain">-8.38</span></td>
+                                <td class="font-extrabold text-emerald-700">35.30<span class="metric-gain">-2.68</span></td>
+                                <td class="font-extrabold text-cyan-800">50.45<span class="metric-gain">+30.38</span></td>
+                                <td class="font-extrabold text-cyan-800">69.58<span class="metric-gain">+40.03</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-8 overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm">
+                <div class="border-b border-sky-100 px-5 py-4">
+                    <h3 class="text-xl font-bold text-slate-950">Semantic Grounding And Safety Relations</h3>
+                    <!-- <p class="mt-2 text-sm text-slate-600 leading-relaxed">
+                        Compositional semantic grounding and safety relation analysis on Falcon-X. CPC, MCI, FC, SRL,
+                        PCS, and CLR denote component presence check, missing component identification, functional
+                        completeness, scene risk level, potential component sets, and component link risk.
+                    </p> -->
+                </div>
+                <div class="overflow-hidden">
+                    <table class="results-table text-center text-[8px] sm:text-[10px] lg:text-[11px] text-slate-600">
+                        <colgroup>
+                            <col class="method-col">
+                            <col class="metric-col-tight">
+                            <col class="metric-col-tight">
+                            <col class="metric-col-tight">
+                            <col class="metric-col-tight">
+                            <col class="metric-col-tight">
+                            <col class="metric-col-tight">
+                            <col class="metric-col-tight">
+                            <col class="metric-col-tight">
+                            <col class="metric-col-tight">
+                            <col class="metric-col-tight">
+                        </colgroup>
+                        <thead class="bg-slate-950 text-[7px] sm:text-[9px] lg:text-[10px] uppercase text-sky-50">
+                            <tr>
+                                <th rowspan="3" class="text-left font-bold">Method</th>
+                                <th colspan="6" class="border-l border-slate-700 font-bold">Semantic Grounding</th>
+                                <th colspan="4" class="border-l border-slate-700 font-bold">Safety Relationship</th>
+                            </tr>
+                            <tr class="border-t border-slate-700">
+                                <th colspan="2" class="border-l border-slate-700 font-bold">CPC</th>
+                                <th colspan="2" class="border-l border-slate-700 font-bold">MCI</th>
+                                <th colspan="2" class="border-l border-slate-700 font-bold">FC</th>
+                                <th class="border-l border-slate-700 font-bold">SRL</th>
+                                <th colspan="2" class="border-l border-slate-700 font-bold">PCS</th>
+                                <th class="border-l border-slate-700 font-bold">CLR</th>
+                            </tr>
+                            <tr class="border-t border-slate-700">
+                                <th class="border-l border-slate-700 font-semibold">Acc</th>
+                                <th class="font-semibold">F1</th>
+                                <th class="border-l border-slate-700 font-semibold">Acc</th>
+                                <th class="font-semibold">F1</th>
+                                <th class="border-l border-slate-700 font-semibold">MAE</th>
+                                <th class="font-semibold">RMSE</th>
+                                <th class="border-l border-slate-700 font-semibold">MAE</th>
+                                <th class="border-l border-slate-700 font-semibold">Acc</th>
+                                <th class="font-semibold">F1</th>
+                                <th class="border-l border-slate-700 font-semibold">MAE</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-sky-50">
+                            <tr class="bg-slate-50 text-left text-[10px] sm:text-xs font-bold uppercase text-slate-500">
+                                <td colspan="11" class="px-4 py-2">Zero-shot</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Sa2Va</td>
+                                <td class="font-semibold text-sky-700">58.4</td>
+                                <td>46.2</td>
+                                <td>12.6</td>
+                                <td>15.8</td>
+                                <td>0.60</td>
+                                <td>&ndash;</td>
+                                <td>0.40</td>
+                                <td>13.56</td>
+                                <td>54.9</td>
+                                <td>&ndash;</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Kosmos-2</td>
+                                <td>57.09</td>
+                                <td>36.36</td>
+                                <td>14.16</td>
+                                <td>15.26</td>
+                                <td>0.57</td>
+                                <td>0.67</td>
+                                <td>0.43</td>
+                                <td>14.3</td>
+                                <td class="font-semibold text-emerald-700">57.1</td>
+                                <td>&ndash;</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Llava-1.5</td>
+                                <td>57.4</td>
+                                <td>47.12</td>
+                                <td>14.32</td>
+                                <td>14.93</td>
+                                <td>0.7</td>
+                                <td>&ndash;</td>
+                                <td>&ndash;</td>
+                                <td>14.1</td>
+                                <td>56.47</td>
+                                <td>&ndash;</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">GLaMM</td>
+                                <td>55.8</td>
+                                <td>35.9</td>
+                                <td>11.6</td>
+                                <td>14.2</td>
+                                <td>0.52</td>
+                                <td>&ndash;</td>
+                                <td>0.31</td>
+                                <td>12.6</td>
+                                <td>56.2</td>
+                                <td>&ndash;</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">LISA</td>
+                                <td>&ndash;</td>
+                                <td>&ndash;</td>
+                                <td>14.29</td>
+                                <td>14.29</td>
+                                <td>0.9</td>
+                                <td>0.9</td>
+                                <td>&ndash;</td>
+                                <td>&ndash;</td>
+                                <td>&ndash;</td>
+                                <td>&ndash;</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Groma</td>
+                                <td>57.1</td>
+                                <td class="font-semibold text-sky-700">36.4</td>
+                                <td>13.3</td>
+                                <td>19.9</td>
+                                <td>0.59</td>
+                                <td>0.69</td>
+                                <td>0.36</td>
+                                <td>14.63</td>
+                                <td>57.05</td>
+                                <td>&ndash;</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Sting-Bee</td>
+                                <td>57.14</td>
+                                <td>36.36</td>
+                                <td>14.29</td>
+                                <td>14.29</td>
+                                <td>0.49</td>
+                                <td>0.48</td>
+                                <td>0.42</td>
+                                <td>0.01</td>
+                                <td>42.86</td>
+                                <td>&ndash;</td>
+                            </tr>
+                            <tr class="bg-slate-50 text-left text-[10px] sm:text-xs font-bold uppercase text-slate-500">
+                                <td colspan="11" class="px-4 py-2">Fine-tuned</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">LISA</td>
+                                <td>&ndash;</td>
+                                <td>&ndash;</td>
+                                <td>17.63</td>
+                                <td>19.25</td>
+                                <td class="font-semibold text-sky-700">0.28</td>
+                                <td class="font-semibold text-sky-700">0.35</td>
+                                <td class="font-semibold text-emerald-700">0.20</td>
+                                <td>0.41</td>
+                                <td>43.06</td>
+                                <td class="font-semibold text-emerald-700">0.20</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Sting-Bee</td>
+                                <td class="font-semibold text-emerald-700">98</td>
+                                <td class="font-semibold text-emerald-700">98</td>
+                                <td class="font-semibold text-sky-700">93.45</td>
+                                <td class="font-semibold text-sky-700">96.31</td>
+                                <td>0.031</td>
+                                <td>0.36</td>
+                                <td class="font-semibold text-sky-700">0.23</td>
+                                <td class="font-semibold text-sky-700">14.89</td>
+                                <td>56.34</td>
+                                <td class="font-semibold text-sky-700">0.24</td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70">
+                                <td class="text-left font-medium text-slate-900">Groma</td>
+                                <td class="font-semibold text-emerald-700">98</td>
+                                <td class="font-semibold text-red-700">98</td>
+                                <td class="font-semibold text-red-700">97.1</td>
+                                <td class="font-semibold text-red-700">98.6</td>
+                                <td class="font-semibold text-emerald-700">0.019</td>
+                                <td class="font-semibold text-emerald-700">0.13</td>
+                                <td>&ndash;</td>
+                                <td class="font-semibold text-emerald-700">14.9</td>
+                                <td class="font-semibold text-sky-700">57.06</td>
+                                <td>&ndash;</td>
+                            </tr>
+                            <tr class="bg-cyan-50 text-slate-950 ring-1 ring-inset ring-cyan-200">
+                                <td class="text-left font-extrabold">FALCON</td>
+                                <td class="font-extrabold text-cyan-800">98.1<span class="metric-gain">+0.1</span></td>
+                                <td class="font-extrabold text-emerald-700">97.97<span class="metric-gain">-0.03</span></td>
+                                <td class="font-extrabold text-emerald-700">94.75<span class="metric-gain">-2.35</span></td>
+                                <td class="font-extrabold text-emerald-700">97.33<span class="metric-gain">-1.27</span></td>
+                                <td class="font-extrabold text-red-700">0.017<span class="metric-gain">-0.002</span></td>
+                                <td class="font-extrabold text-red-700">0.09<span class="metric-gain">-0.04</span></td>
+                                <td class="font-extrabold text-red-700">0.02<span class="metric-gain">-0.18</span></td>
+                                <td class="font-extrabold text-red-700">15.1<span class="metric-gain">+0.2</span></td>
+                                <td class="font-extrabold text-red-700">57.69<span class="metric-gain">+0.59</span></td>
+                                <td class="font-extrabold text-red-700">0.005<span class="metric-gain">-0.195</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="border-t border-sky-100 px-5 py-3 text-xs text-slate-500">
+                    MAE and RMSE are lower-is-better metrics.
+                </div>
+            </div>
+        </section>
+
+        <section id="visualizations" class="mb-24">
+            <div class="flex items-center gap-3 mb-8">
+                <div class="p-2 bg-rose-100 rounded-lg text-rose-700">
+                    <i data-lucide="images" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-950 tracking-tight">Qualitative Results</h2>
+            </div>
+
+            <div class="figure-shell rounded-2xl border border-sky-100 overflow-hidden mb-8">
+                <div class="flex items-center justify-between gap-3 border-b border-sky-100 px-4 py-3">
+                    <button type="button" id="viz-prev"
+                        class="h-10 w-10 rounded-full bg-slate-950 text-white inline-flex items-center justify-center hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        aria-label="Previous visualization">
+                        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                    </button>
+                    <div class="text-center">
+                        <p id="viz-count" class="text-sm text-slate-500">1 of 3</p>
+                    </div>
+                    <button type="button" id="viz-next"
+                        class="h-10 w-10 rounded-full bg-slate-950 text-white inline-flex items-center justify-center hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        aria-label="Next visualization">
+                        <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <button type="button" id="viz-figure"
+                    class="w-full bg-white cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    aria-label="Open visualization figure">
+                    <img id="viz-img" src="assets/intro-1.png" alt="IED component reasoning example 1"
+                        class="w-full h-auto max-h-[680px] object-contain">
+                </button>
+            </div>
+
+            <div class="figure-shell rounded-2xl p-3 overflow-hidden group">
+                <button type="button"
+                    class="w-full rounded-xl bg-white cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    onclick="openLightbox('assets/qualitative-results.png', 'FALCON qualitative results')"
+                    aria-label="Open qualitative results figure">
+                    <img src="assets/qualitative-results.png" alt="FALCON qualitative results"
+                        class="w-full h-auto rounded-xl transition-transform duration-700 group-hover:scale-[1.01]">
+                </button>
+                <!-- <p class="text-sm text-slate-600 px-2 pt-4 pb-1">
+                    Qualitative examples cover component grounding, compatibility reasoning, component completeness,
+                    and scene-level risk analysis over safety-critical X-ray imagery.
+                </p> -->
+            </div>
+        </section>
+
+        <section id="citation" class="mb-20">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="p-2 bg-slate-200 rounded-lg text-slate-700">
+                    <i data-lucide="quote" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-950 tracking-tight">Citation</h2>
+            </div>
+            <div class="relative group">
+                <button onclick="copyBibtex()" type="button"
+                    class="absolute top-4 right-4 p-2.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-cyan-700 hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-700"
+                    title="Copy to clipboard" aria-label="Copy BibTeX">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                </button>
+                <pre class="code-block p-6 rounded-2xl overflow-x-auto text-sm leading-relaxed border border-slate-800 shadow-2xl"
+                    id="bibtex">@inproceedings{michael2026falcon,
+    title={FALCON: Dismantled IED Component Grounding and Risk Reasoning},
+    author={Michael, Yonathan and Alansari, Mohamad and Takele, Natnael and Henschel, Andreas and Werghi, Naoufel},
+    booktitle={Proceedings of the European Conference on Computer Vision (ECCV)},
+    year={2026}
+}</pre>
+            </div>
+            <div id="copy-toast" class="hidden text-cyan-700 text-sm font-semibold mt-3 items-center">
+                <i data-lucide="check-circle-2" class="w-4 h-4 mr-1"></i> Copied to clipboard.
+            </div>
+        </section>
+    </main>
+
+    <footer class="border-t border-sky-100 bg-white py-8">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-500">
+            <div class="flex items-center justify-center gap-3 mb-3">
+                <img src="assets/cvml-lab-logo.jpg" alt="CVML-KU logo"
+                    class="h-8 w-8 rounded-full border border-sky-100 object-cover">
+                <span class="font-semibold text-slate-700">CVML-KU</span>
+            </div>
+            <p>&copy; 2026 CVML-KU lab, Khalifa University. All rights reserved.</p>
+            <p class="mt-2">
+                Project page adapted from
+                <a href="https://risys-lab.github.io/SPARROW/" target="_blank" rel="noopener"
+                    class="font-semibold text-cyan-700 hover:text-cyan-900">SPARROW</a>.
+            </p>
+        </div>
+    </footer>
+
+    <div id="lightbox"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 backdrop-blur-sm opacity-0 invisible p-4">
+        <button onclick="closeLightbox()"
+            class="absolute top-6 right-6 text-white/80 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10"
+            aria-label="Close lightbox">
+            <i data-lucide="x" class="w-8 h-8"></i>
+        </button>
+        <div class="max-w-7xl w-full max-h-[90vh] flex flex-col items-center">
+            <img id="lightbox-img" src="" alt="Expanded figure"
+                class="max-w-full max-h-[82vh] object-contain rounded-lg shadow-2xl transform scale-95">
+            <p id="lightbox-caption" class="text-slate-300 mt-5 text-lg font-medium text-center"></p>
+        </div>
+    </div>
+
+    <script>
+        const visualizations = [
+            { src: 'assets/intro-1.png', caption: 'IED component reasoning example 1', alt: 'IED component reasoning example 1' },
+            { src: 'assets/intro-2.png', caption: 'IED component reasoning example 2', alt: 'IED component reasoning example 2' },
+            { src: 'assets/intro-3.png', caption: 'IED component reasoning example 3', alt: 'IED component reasoning example 3' }
+        ];
+
+        let visualizationIndex = 0;
+
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxCaption = document.getElementById('lightbox-caption');
+        const vizImg = document.getElementById('viz-img');
+        const vizCount = document.getElementById('viz-count');
+        const vizFigure = document.getElementById('viz-figure');
+
+        function openLightbox(src, alt) {
+            lightboxImg.src = src;
+            lightboxImg.alt = alt || 'Expanded figure';
+            lightboxCaption.textContent = alt || '';
+            lightbox.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function updateVisualization(direction) {
+            visualizationIndex = (visualizationIndex + direction + visualizations.length) % visualizations.length;
+            const item = visualizations[visualizationIndex];
+            vizImg.src = item.src;
+            vizImg.alt = item.alt;
+            vizCount.textContent = `${visualizationIndex + 1} of ${visualizations.length}`;
+        }
+
+        document.getElementById('viz-prev')?.addEventListener('click', () => updateVisualization(-1));
+        document.getElementById('viz-next')?.addEventListener('click', () => updateVisualization(1));
+        vizFigure?.addEventListener('click', () => {
+            const item = visualizations[visualizationIndex];
+            openLightbox(item.src, item.alt);
+        });
+
+        lightbox.addEventListener('click', (event) => {
+            if (event.target === lightbox) {
+                closeLightbox();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeLightbox();
+            }
+        });
+
+        function copyBibtex() {
+            const text = document.getElementById('bibtex').textContent;
+            const toast = document.getElementById('copy-toast');
+            navigator.clipboard.writeText(text).then(() => {
+                toast.classList.remove('hidden');
+                toast.classList.add('flex');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                    toast.classList.remove('flex');
+                }, 2200);
+            });
+        }
+
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
