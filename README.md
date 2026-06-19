@@ -5,7 +5,7 @@
 # FALCON: Functional Assembly and Language for Compositional Reasoning in X-ray [ECCV 2026]
 _________________________________________________________________________________________________
 
-Yonathan Michael, Mohamad Alansari, Natnael Takele, Andreas Henschel, Naoufel Werghi
+[Yonathan Michael](https://scholar.google.com/citations?user=1NgtYpwAAAAJ&hl=en), [Mohamad Alansari](https://scholar.google.com/citations?user=dLQ1jLkAAAAJ&hl=en), [Natnael Takele](), [Andreas Henschel](https://scholar.google.com/citations?user=jenl24IAAAAJ&hl=en&oi=ao), [Naoufel Werghi](https://scholar.google.com/citations?user=G_2Xpm0AAAAJ&hl=en)
 
 <p align="center">
   <a href="">📄 Paper</a>
