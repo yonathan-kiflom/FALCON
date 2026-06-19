@@ -1,18 +1,20 @@
+<p align="center">
+  <img src="page/assets/falcon-logo.png" alt="FALCON logo" width="160">
+</p>
+
 # FALCON: Functional Assembly and Language for Compositional Reasoning in X-ray [ECCV 2026]
 _________________________________________________________________________________________________
 
 Yonathan Michael, Mohamad Alansari, Natnael Takele, Andreas Henschel, Naoufel Werghi
 
 <p align="center">
-  
-  
-</p>
-
-<p align="center">
   <a href="">📄 Paper</a>
   &nbsp;|&nbsp;
   <a href="https://yonathan-kiflom.github.io/FALCON/page/">🌐 Project Page</a>
   &nbsp;|&nbsp;
+  <a href="#weights-coming-soon"><img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="Hugging Face" width="20" height="20" align="absmiddle"> Weights</a>
+  &nbsp;|&nbsp;
+  <a href="#benchmark-coming-soon">&#128202; Benchmark</a>
 </p>
 
 ## Highlights
@@ -38,4 +40,3 @@ Release schedule:
     year={2026}
 }
 ```
-
