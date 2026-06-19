@@ -1,8 +1,7 @@
-<p align="center">
-  <img src="page/assets/falcon-logo.png" alt="FALCON logo" width="160">
-</p>
-
-# FALCON: Functional Assembly and Language for Compositional Reasoning in X-ray [ECCV 2026]
+<h1>
+  <img src="page/assets/falcon-logo.png" alt="FALCON logo" width="52" align="absmiddle">
+  FALCON: Functional Assembly and Language for Compositional Reasoning in X-ray [ECCV 2026]
+</h1>
 
 ---
 
