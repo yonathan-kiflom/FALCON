@@ -17,16 +17,20 @@ ________________________________________________________________________________
   <a href="#benchmark-coming-soon">&#128202; Benchmark</a>
 </p>
 
-## Highlights
+## 📰 News
 
+- [x] FALCON project page is now live!
 - [x] :tada: FALCON is accepted at ECCV 2026!
 
-Release schedule:
+<details>
+<summary>View Checklist</summary>
 
 - [ ] Release paper link.
 - [ ] Release Falcon-X benchmark.
 - [ ] Release model weights.
 - [ ] Release training and evaluation instructions.
+
+</details>
 
 ## Citation
 
