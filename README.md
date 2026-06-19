@@ -1,30 +1,18 @@
-# FALCON
-
-**FALCON: Functional Assembly and Language for Compositional Reasoning in X-ray [ECCV 2026]**
+# FALCON: Functional Assembly and Language for Compositional Reasoning in X-ray [ECCV 2026]
+_________________________________________________________________________________________________
 
 Yonathan Michael, Mohamad Alansari, Natnael Takele, Andreas Henschel, Naoufel Werghi
 
-FALCON is a multimodal framework for reasoning and grounding over dismantled IED components, component compatibility, and scene-level risk in cluttered baggage scans.
-
-## Links
+<p align="center">
+  
+  
+</p>
 
 <p align="center">
-  <a href="#paper-coming-soon">
-    <img alt="Paper" src="https://img.shields.io/badge/Paper-coming%20soon-111827?style=for-the-badge&logo=readme&logoColor=white">
-  </a>
-  &nbsp;
-  <a href="https://yonathan-kiflom.github.io/FALCON/page/">
-    <img alt="Project Page" src="https://img.shields.io/badge/Project%20Page-open-0891b2?style=for-the-badge&logo=githubpages&logoColor=white">
-  </a>
-  &nbsp;
-  <a href="#weights-coming-soon">
-    <img alt="Hugging Face" src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" width="28" height="28">
-    <img alt="Weights" src="https://img.shields.io/badge/Weights-coming%20soon-fde047?style=for-the-badge">
-  </a>
-  &nbsp;
-  <a href="#benchmark-coming-soon">
-    <img alt="Benchmark" src="https://img.shields.io/badge/Benchmark-coming%20soon-047857?style=for-the-badge&logo=databricks&logoColor=white">
-  </a>
+  <a href="">📄 Paper</a>
+  &nbsp;|&nbsp;
+  <a href="https://yonathan-kiflom.github.io/FALCON/page/">🌐 Project Page</a>
+  &nbsp;|&nbsp;
 </p>
 
 ## Highlights
