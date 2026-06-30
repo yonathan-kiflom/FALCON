@@ -10,7 +10,7 @@
 **Khalifa University, Abu Dhabi, UAE**
 
 <p align="center">
-  <a href="">📄 Paper</a>
+  <a href="https://arxiv.org/abs/2606.25701">📄 Paper</a>
   &nbsp;|&nbsp;
   <a href="https://yonathan-kiflom.github.io/FALCON/page/">🌐 Project Page</a>
   &nbsp;|&nbsp;
@@ -29,7 +29,6 @@
 <details>
 <summary>View Checklist</summary>
 
-- [ ] Release paper link.
 - [ ] Release Falcon-X benchmark.
 - [ ] Release model weights.
 - [ ] Release training and evaluation instructions.
