@@ -5,9 +5,9 @@
 
 ---
 
-[Yonathan Michael](https://scholar.google.com/citations?user=1NgtYpwAAAAJ&hl=en), [Mohamad Alansari](https://scholar.google.com/citations?user=dLQ1jLkAAAAJ&hl=en), [Natnael Takele](https://scholar.google.com/citations?user=dVtaIkAAAAAJ&hl=en), [Andreas Henschel](https://scholar.google.com/citations?user=jenl24IAAAAJ&hl=en&oi=ao), [Naoufel Werghi](https://scholar.google.com/citations?user=G_2Xpm0AAAAJ&hl=en)
+[Yonathan Michael](https://scholar.google.com/citations?user=1NgtYpwAAAAJ&hl=en)*, [Mohamad Alansari](https://scholar.google.com/citations?user=dLQ1jLkAAAAJ&hl=en)*, [Natnael Takele](https://scholar.google.com/citations?user=dVtaIkAAAAAJ&hl=en), [Andreas Henschel](https://scholar.google.com/citations?user=jenl24IAAAAJ&hl=en&oi=ao), [Naoufel Werghi](https://scholar.google.com/citations?user=G_2Xpm0AAAAJ&hl=en)
 
-**Khalifa University, Abu Dhabi, UAE**
+**Khalifa University, Abu Dhabi, UAE**, * Equal Contribution
 
 <p align="center">
   <a href="https://arxiv.org/abs/2606.25701">📄 Paper</a>
