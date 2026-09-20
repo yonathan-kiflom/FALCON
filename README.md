@@ -14,26 +14,53 @@
   &nbsp;|&nbsp;
   <a href="https://yonathan-kiflom.github.io/FALCON/page/">🌐 Project Page</a>
   &nbsp;|&nbsp;
-  <a href="#weights-coming-soon"><img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="Hugging Face" width="20" height="20" align="absmiddle"> Weights</a>
+  <a href="https://huggingface.co/JonathanJMK/FALCON"><img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="Hugging Face" width="20" height="20" align="absmiddle"> Weights</a>
   &nbsp;|&nbsp;
-  <a href="#benchmark-coming-soon">&#128202; Benchmark</a>
+  <a href="https://huggingface.co/datasets/JonathanJMK/falcon-x">&#128202; Benchmark</a>
 </p>
 
 ---
 
 ## 📰 News
 
+- [x] FALCON code is now available!
 - [x] FALCON project page is now live!
 - [x] :tada: FALCON is accepted at ECCV 2026!
 
-<details>
-<summary>View Checklist</summary>
+## Code
 
-- [ ] Release Falcon-X benchmark.
-- [ ] Release model weights.
-- [ ] Release training and evaluation instructions.
+Requires Python 3.10–3.11. Caption metrics also require Java.
 
-</details>
+```bash
+python -m pip install -e '.[train,caption]'
+python -m falcon --help
+```
+
+See [training](docs/training.md), [evaluation](docs/evaluation.md), and
+[optional annotations](docs/annotations.md).
+
+## Weights
+
+Download the complete model from [JonathanJMK/FALCON](https://huggingface.co/JonathanJMK/FALCON)
+on Hugging Face:
+
+```python
+from transformers import AutoModel
+
+model = AutoModel.from_pretrained(
+    "JonathanJMK/FALCON", trust_remote_code=True,
+).to("cuda").eval()
+result, masks = model.predict(image="image.png", prompt="Describe the image.")
+print(result["answer"])
+```
+
+Review the custom code before loading; use `revision=` to pin a model version.
+Use one GPU and retain the saved precision; automatic device mapping and
+quantization are not supported.
+
+## Benchmark
+
+Download [falcon-x on Hugging Face](https://huggingface.co/datasets/JonathanJMK/falcon-x).
 
 ## Citation
 

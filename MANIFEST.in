@@ -1,0 +1,9 @@
+include README.md LICENSE CITATION.cff environment.yml
+include page/assets/falcon-logo.png
+include third_party/README.md
+recursive-include configs *.yaml
+recursive-include docs *.md
+prune tests
+prune .github
+global-exclude *.py[cod]
+prune build

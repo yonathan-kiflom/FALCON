@@ -236,19 +236,19 @@
                     </svg>
                     Code
                 </a>
-                <button type="button" disabled
-                    class="w-full max-w-[235px] sm:w-auto inline-flex cursor-not-allowed items-center justify-center px-6 py-3 text-base font-semibold text-sky-200 bg-white/8 border border-white/15 rounded-full shadow-sm"
-                    title="Weights">
+                <a href="https://huggingface.co/JonathanJMK/FALCON" target="_blank" rel="noopener"
+                    class="w-full max-w-[235px] sm:w-auto inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-sky-200 bg-white/8 border border-white/15 rounded-full shadow-sm transition-all duration-200 hover:bg-white/14 hover:text-white hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#06121f] focus:ring-cyan-200"
+                    title="Download weights on Hugging Face">
                     <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt=""
                         class="mr-2 h-5 w-5" loading="lazy">
-                    Weights soon
-                </button>
-                <button type="button" disabled
-                    class="w-full max-w-[235px] sm:w-auto inline-flex cursor-not-allowed items-center justify-center px-6 py-3 text-base font-semibold text-sky-200 bg-white/8 border border-white/15 rounded-full shadow-sm"
-                    title="Benchmark">
+                    Weights
+                </a>
+                <a href="https://huggingface.co/datasets/JonathanJMK/falcon-x" target="_blank" rel="noopener"
+                    class="w-full max-w-[235px] sm:w-auto inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-sky-200 bg-white/8 border border-white/15 rounded-full shadow-sm transition-all duration-200 hover:bg-white/14 hover:text-white hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#06121f] focus:ring-cyan-200"
+                    title="Download falcon-x on Hugging Face">
                     <i data-lucide="database" class="w-5 h-5 mr-2"></i>
-                    Benchmark soon
-                </button>
+                    Benchmark
+                </a>
             </div>
         </header>
     </div>
@@ -395,9 +395,6 @@
             </div>
 
             <div class="figure-shell rounded-2xl p-3 overflow-hidden group">
-                <p class="text-sm text-slate-600 px-2 pt-4 pb-1">
-                    <!-- Annotation Pipeline -->
-                </p>
                 <button type="button"
                     class="w-full rounded-xl bg-white cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     onclick="openLightbox('assets/data-collection.png', 'Falcon-X data collection and annotation pipeline')"
@@ -405,21 +402,11 @@
                     <img src="assets/data-collection.png" alt="Falcon-X data collection and annotation pipeline"
                         class="w-full h-auto rounded-xl transition-transform duration-700 group-hover:scale-[1.01]">
                 </button>
-                <!-- <p class="text-sm text-slate-600 px-2 pt-4 pb-1">
-                    Falcon-X unifies dense grounding with structured supervision for dismantled component
-                    completeness, functional compatibility, and scene-level risk inference, making compositional
-                    safety reasoning measurable in cluttered X-ray scenes.
-                </p> -->
             </div>
 
             <div class="mt-8 overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm">
                 <div class="border-b border-sky-100 px-5 py-4">
                     <h3 class="text-xl font-bold text-slate-950">Benchmark Comparison</h3>
-                    <!-- <p class="mt-2 text-sm text-slate-600 leading-relaxed">
-                        Comparison of Falcon-X with existing X-ray security benchmarks. DC denotes explicit modeling of
-                        dismantled components. Falcon-X jointly supports dense grounding, multimodal understanding, and
-                        structured functional threat reasoning.
-                    </p> -->
                 </div>
                 <div class="overflow-hidden">
                     <table class="benchmark-table text-center text-[8px] sm:text-[10px] lg:text-[11px] text-slate-600">
@@ -716,10 +703,6 @@
             <div class="overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm">
                 <div class="border-b border-sky-100 px-5 py-4">
                     <h3 class="text-xl font-bold text-slate-950">Scene Understanding</h3>
-                    <!-- <p class="mt-2 text-sm text-slate-600 leading-relaxed">
-                        Scene understanding image captioning and VQA performance on Falcon-X. Higher values indicate
-                        stronger caption quality and more accurate multimodal question answering.
-                    </p> -->
                 </div>
                 <div class="overflow-hidden">
                     <table class="results-table text-center text-[9px] sm:text-xs text-slate-600">
@@ -874,11 +857,6 @@
             <div class="mt-8 overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm">
                 <div class="border-b border-sky-100 px-5 py-4">
                     <h3 class="text-xl font-bold text-slate-950">Perception And Compositional Grounding</h3>
-                    <!-- <p class="mt-2 text-sm text-slate-600 leading-relaxed">
-                        Perception and compositional grounding performance on Falcon-X. RS, PS, RPS, and RFG denote
-                        referring segmentation, panoptic segmentation, referring panoptic segmentation, and referring
-                        functional grounding.
-                    </p> -->
                 </div>
                 <div class="overflow-hidden">
                     <table class="results-table text-center text-[9px] sm:text-xs text-slate-600">
@@ -1037,11 +1015,6 @@
             <div class="mt-8 overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm">
                 <div class="border-b border-sky-100 px-5 py-4">
                     <h3 class="text-xl font-bold text-slate-950">Semantic Grounding And Safety Relations</h3>
-                    <!-- <p class="mt-2 text-sm text-slate-600 leading-relaxed">
-                        Compositional semantic grounding and safety relation analysis on Falcon-X. CPC, MCI, FC, SRL,
-                        PCS, and CLR denote component presence check, missing component identification, functional
-                        completeness, scene risk level, potential component sets, and component link risk.
-                    </p> -->
                 </div>
                 <div class="overflow-hidden">
                     <table class="results-table text-center text-[8px] sm:text-[10px] lg:text-[11px] text-slate-600">
@@ -1284,10 +1257,6 @@
                     <img src="assets/qualitative-results.png" alt="FALCON qualitative results"
                         class="w-full h-auto rounded-xl transition-transform duration-700 group-hover:scale-[1.01]">
                 </button>
-                <!-- <p class="text-sm text-slate-600 px-2 pt-4 pb-1">
-                    Qualitative examples cover component grounding, compatibility reasoning, component completeness,
-                    and scene-level risk analysis over safety-critical X-ray imagery.
-                </p> -->
             </div>
         </section>
 

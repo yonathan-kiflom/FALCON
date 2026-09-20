@@ -1,0 +1,17 @@
+Llama 2 is licensed under the LLAMA 2 Community License, Copyright (c) Meta
+Platforms, Inc. All Rights Reserved.
+
+Vicuna-7B-v1.5: LMSYS, derived from Llama 2.
+https://huggingface.co/lmsys/vicuna-7b-v1.5
+License: LICENSE-Llama-2. Acceptable Use Policy:
+https://huggingface.co/meta-llama/Llama-2-7b/blob/main/USE_POLICY.md
+
+DINOv2: Meta Platforms, Inc. and affiliates, Apache-2.0.
+https://github.com/facebookresearch/dinov2
+
+RF-DETR segmentation 1.5.2: Roboflow, Apache-2.0.
+https://github.com/roboflow/rf-detr/tree/1.5.2
+
+FALCON code: Apache-2.0. See LICENSE-code for the Apache-2.0 license text.
+The final model includes fine-tuned detector, adapter and LoRA weights;
+upstream model licenses remain applicable.

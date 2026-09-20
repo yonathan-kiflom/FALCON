@@ -1,0 +1,33 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.idea/
+.vscode/
+.ruff_cache/
+.pytest_cache/
+*.swp
+
+# Generated data and weights.
+data/
+checkpoints/
+outputs/
+runs/
+reports/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+*.log
+.env
+.env.*
+!.env.example
+cache/
+
+# Optional upstream checkouts.
+third_party/Groma/
+third_party/rf-detr/

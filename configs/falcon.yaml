@@ -1,0 +1,63 @@
+experiment:
+  name: falcon-x
+  protocol: dataset-v1
+  backbone_layout: independent
+
+model:
+  vision_model: facebook/dinov2-large
+  language_model: lmsys/vicuna-7b-v1.5
+  image_size: 448
+  patch_size: 14
+  region_dim: 1024
+  roi_size: 4
+  max_regions: 100
+  component_order: [detonator, explosive, battery]
+  link_order:
+    - [battery, detonator]
+    - [battery, explosive]
+    - [detonator, explosive]
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+
+detector:
+  variant: seg-2xlarge
+  resolution: 768
+  score_threshold: 0.15
+  nms_threshold: 0.60
+  mask_threshold: 0.5
+  max_regions: 100
+
+training:
+  sampling: all
+  epoch_size: null
+  epochs: 1
+  batch_size: 1
+  gradient_accumulation: 16
+  weight_decay: 0.0
+  warmup_ratio: 0.03
+  max_text_tokens: 256
+  risk_loss_weight: 1.0
+  presence_loss_weight: 0.5
+  link_loss_weight: 0.5
+  seed: 42
+
+stages:
+  stage1:
+    epochs: 12
+    batch_size: 1
+    gradient_accumulation: 16
+    learning_rate: 0.0001
+    encoder_learning_rate: 0.00015
+    weight_decay: 0.0001
+    lr_scheduler: cosine
+    multi_scale: false
+    expanded_scales: false
+  stage2:
+    batch_size: 4
+    gradient_accumulation: 4
+    learning_rate: 0.0001
+    precision: bf16
+  stage3:
+    learning_rate: 0.00001
+    precision: bf16

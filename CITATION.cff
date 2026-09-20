@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use Falcon or Falcon-X, please cite the accompanying paper."
+title: "Falcon: Functional Assembly and Language for Compositional Reasoning in X-ray"
+type: software
+version: 1.0.0
+authors:
+  - given-names: Yonathan
+    family-names: Michael
+    orcid: "https://orcid.org/0009-0005-8457-294X"
+  - given-names: Mohamad
+    family-names: Alansari
+    orcid: "https://orcid.org/0000-0003-2960-2972"
+  - given-names: Natnael
+    family-names: Takele
+    orcid: "https://orcid.org/0009-0009-3788-5256"
+  - given-names: Andreas
+    family-names: Henschel
+    orcid: "https://orcid.org/0000-0003-1386-5372"
+  - given-names: Naoufel
+    family-names: Werghi
+    orcid: "https://orcid.org/0000-0002-5542-448X"
+url: "https://yonathan-kiflom.github.io/FALCON/page/"

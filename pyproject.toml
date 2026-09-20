@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools==75.6.0", "wheel==0.45.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "falcon-x"
+version = "1.0.0"
+description = "Compositional safety reasoning in dual-energy X-ray images"
+readme = "README.md"
+requires-python = ">=3.10,<3.12"
+license = {text = "Apache-2.0"}
+dependencies = [
+  "numpy==1.26.4",
+  "Pillow==12.0.0",
+  "pycocotools==2.0.8",
+  "PyYAML==6.0.2",
+  "scipy==1.13.1",
+]
+
+[project.optional-dependencies]
+train = [
+  "accelerate==1.2.1",
+  "albumentations==1.4.24",
+  "einops==0.8.0",
+  "huggingface-hub==0.28.1",
+  "opencv-python==4.10.0.84",
+  "opencv-python-headless==4.10.0.84",
+  "peft==0.14.0",
+  "protobuf==5.29.6",
+  "pydantic==2.10.6",
+  "rfdetr==1.5.2",
+  "safetensors==0.5.2",
+  "sentencepiece==0.2.0",
+  "supervision==0.26.1",
+  "tokenizers==0.21.0",
+  "torch==2.4.1",
+  "torchvision==0.19.1",
+  "transformers==4.49.0",
+]
+caption = ["pycocoevalcap==1.2"]
+
+[project.urls]
+Repository = "https://github.com/yonathan-kiflom/FALCON"
+Documentation = "https://github.com/yonathan-kiflom/FALCON/tree/main/docs"
+Paper = "https://arxiv.org/abs/2606.25701"
+
+[project.scripts]
+falcon = "falcon.__main__:main"
+falcon-detector = "falcon.detector:main"
+falcon-prepare = "falcon.prepare:main"
+falcon-train = "falcon.train:main"
+falcon-infer = "falcon.infer:main"
+falcon-evaluate = "falcon.evaluate:main"
+
+[tool.setuptools.packages.find]
+include = ["falcon*"]
+
+[tool.setuptools.package-data]
+falcon = ["model_card.md", "licenses/*"]
