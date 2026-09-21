@@ -38,6 +38,7 @@ train = [
   "transformers==4.49.0",
 ]
 caption = ["pycocoevalcap==1.2"]
+demo = ["gradio==6.28.0", "fastapi==0.141.1"]
 
 [project.urls]
 Repository = "https://github.com/yonathan-kiflom/FALCON"
@@ -51,6 +52,7 @@ falcon-prepare = "falcon.prepare:main"
 falcon-train = "falcon.train:main"
 falcon-infer = "falcon.infer:main"
 falcon-evaluate = "falcon.evaluate:main"
+falcon-demo = "falcon.demo:main"
 
 [tool.setuptools.packages.find]
 include = ["falcon*"]

@@ -23,6 +23,7 @@
 
 ## 📰 News
 
+- [x] FALCON [local demo](docs/demo.md) is now available!
 - [x] FALCON code is now available!
 - [x] FALCON project page is now live!
 - [x] :tada: FALCON is accepted at ECCV 2026!
@@ -54,6 +55,17 @@ result, masks = model.predict(image="image.png", prompt="Describe the image.")
 print(result["answer"])
 ```
 
+
+## Local demo
+
+Explore images, ask questions, visualize segmentation, and compare existing
+counterfactuals in a local browser. See [demo setup](docs/demo.md).
+
+```bash
+.venv-demo/bin/python -m falcon demo \
+  --runtime-python /path/to/falcon-environment/bin/python \
+  --model checkpoints/FALCON --dataset /path/to/falcon-x
+```
 
 ## Benchmark
 

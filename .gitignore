@@ -7,6 +7,8 @@ dist/
 .vscode/
 .ruff_cache/
 .pytest_cache/
+.venv-demo/
+.gradio/
 *.swp
 
 # Generated data and weights.

@@ -15,9 +15,10 @@ def main() -> None:
         "export": "Package the final model for Hugging Face",
         "infer": "Run the model on one image",
         "evaluate": "Validate, run, or score task evaluations",
+        "demo": "Open the local interactive demo",
     }
     parser = argparse.ArgumentParser(
-        prog="falcon", description="FALCON training and evaluation"
+        prog="falcon", description="FALCON training, inference, and evaluation"
     )
     parser.add_argument("command", choices=commands, help="command to run")
     parser.epilog = "\n".join(
