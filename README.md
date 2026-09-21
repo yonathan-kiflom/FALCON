@@ -54,9 +54,6 @@ result, masks = model.predict(image="image.png", prompt="Describe the image.")
 print(result["answer"])
 ```
 
-Review the custom code before loading; use `revision=` to pin a model version.
-Use one GPU and retain the saved precision; automatic device mapping and
-quantization are not supported.
 
 ## Benchmark
 
